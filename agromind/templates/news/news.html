@@ -1,0 +1,60 @@
+{% extends "base/base.html" %}
+{% block title %}Agri News{% endblock %}
+{% block page_title %}Agriculture News{% endblock %}
+{% block content %}
+<div style="margin-bottom:18px;">
+  <div class="card">
+    <div class="card-head"><div class="card-title">📰 Real-Time Agriculture News</div><span style="font-size:11px;color:var(--green);font-weight:600;">StepFun AI • India + Global</span></div>
+    <div class="card-body">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <button class="news-btn active-btn" onclick="getNews('india',this)">🇮🇳 India News</button>
+        <button class="news-btn" onclick="getNews('global',this)">🌍 Global News</button>
+        <button class="news-btn" onclick="getNews('market',this)">📊 Market Prices</button>
+        <button class="news-btn" onclick="getNews('tips',this)">💡 Farming Tips</button>
+      </div>
+      <div class="loading" id="n-loading"><div class="spinner"></div> Fetching latest agriculture news…</div>
+      <div id="m-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+<div id="o-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+<div id="r-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+<div id="n-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+      <div id="n-error" class="err-box" style="display:none;"></div>
+      <div id="n-placeholder" style="text-align:center;color:var(--txt3);padding:32px;font-size:13px;">Select a category above to get the latest agriculture news</div>
+    </div>
+  </div>
+</div>
+
+<style>
+.news-btn { padding:8px 18px; border-radius:20px; border:1.5px solid var(--bdr2); background:var(--surf2); color:var(--txt2); font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
+.news-btn:hover { border-color:var(--green); color:var(--green); background:var(--green3); }
+.active-btn { border-color:var(--green); background:var(--green3); color:var(--green); }
+</style>
+
+<input type="hidden" id="csrf" value="{{ csrf_token }}">
+<script>
+function getNews(category, btn) {
+  document.querySelectorAll('.news-btn').forEach(function(b){ b.classList.remove('active-btn'); });
+  if (btn) btn.classList.add('active-btn');
+  document.getElementById('n-loading').style.display = 'flex';
+  document.getElementById('n-result').style.display = 'none';
+  document.getElementById('n-error').style.display = 'none';
+  document.getElementById('n-placeholder').style.display = 'none';
+  fetch('/news/', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','X-CSRFToken':document.getElementById('csrf').value},
+    body: JSON.stringify({category:category})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    document.getElementById('n-loading').style.display = 'none';
+    if (d.success) { var el=document.getElementById('n-result'); el.innerHTML = formatAI(d.result); el.style.display='block'; }
+    else { var el=document.getElementById('n-error'); el.textContent='Error: '+d.error; el.style.display='block'; }
+  })
+  .catch(function(e){
+    document.getElementById('n-loading').style.display = 'none';
+    var el=document.getElementById('n-error'); el.textContent='Network error: '+e.message; el.style.display='block';
+  });
+}
+// Auto-load India news
+window.onload = function(){ getNews('india', document.querySelector('.news-btn')); };
+</script>
+{% endblock %}

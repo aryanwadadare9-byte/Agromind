@@ -1,0 +1,99 @@
+{% extends "base/base.html" %}
+{% block title %}Farm Setup{% endblock %}
+{% block page_title %}Farm Setup{% endblock %}
+{% block content %}
+
+<div style="max-width:600px;">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">
+        🌾 {% if farm %}Update{% else %}Setup Your{% endif %} Farm Profile
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="post" action="/farm/setup/">
+        {% csrf_token %}
+
+        <div class="g2" style="margin-bottom:14px;">
+          <div class="fgrp">
+            <label>Farm Name *</label>
+            <input class="inp" name="name" required
+              value="{{ farm.name|default:'' }}"
+              placeholder="e.g. Patil Farm">
+          </div>
+          <div class="fgrp">
+            <label>Location / Village *</label>
+            <input class="inp" name="location" required
+              value="{{ farm.location|default:'' }}"
+              placeholder="e.g. Parbhani, Maharashtra">
+          </div>
+        </div>
+
+        <div class="g2" style="margin-bottom:14px;">
+          <div class="fgrp">
+            <label>State</label>
+            <select class="inp" name="state">
+              <option {% if farm.state == 'Maharashtra' %}selected{% endif %}>Maharashtra</option>
+              <option {% if farm.state == 'Punjab' %}selected{% endif %}>Punjab</option>
+              <option {% if farm.state == 'Haryana' %}selected{% endif %}>Haryana</option>
+              <option {% if farm.state == 'Uttar Pradesh' %}selected{% endif %}>Uttar Pradesh</option>
+              <option {% if farm.state == 'Madhya Pradesh' %}selected{% endif %}>Madhya Pradesh</option>
+              <option {% if farm.state == 'Rajasthan' %}selected{% endif %}>Rajasthan</option>
+              <option {% if farm.state == 'Gujarat' %}selected{% endif %}>Gujarat</option>
+              <option {% if farm.state == 'Karnataka' %}selected{% endif %}>Karnataka</option>
+              <option {% if farm.state == 'Tamil Nadu' %}selected{% endif %}>Tamil Nadu</option>
+              <option {% if farm.state == 'Andhra Pradesh' %}selected{% endif %}>Andhra Pradesh</option>
+              <option {% if farm.state == 'Telangana' %}selected{% endif %}>Telangana</option>
+              <option {% if farm.state == 'Bihar' %}selected{% endif %}>Bihar</option>
+              <option {% if farm.state == 'West Bengal' %}selected{% endif %}>West Bengal</option>
+              <option {% if farm.state == 'Odisha' %}selected{% endif %}>Odisha</option>
+              <option {% if farm.state == 'Assam' %}selected{% endif %}>Assam</option>
+              <option {% if farm.state == 'Chhattisgarh' %}selected{% endif %}>Chhattisgarh</option>
+              <option {% if farm.state == 'Jharkhand' %}selected{% endif %}>Jharkhand</option>
+              <option {% if farm.state == 'Uttarakhand' %}selected{% endif %}>Uttarakhand</option>
+              <option {% if farm.state == 'Himachal Pradesh' %}selected{% endif %}>Himachal Pradesh</option>
+              <option {% if farm.state == 'Kerala' %}selected{% endif %}>Kerala</option>
+            </select>
+          </div>
+          <div class="fgrp">
+            <label>Total Area (acres) *</label>
+            <input class="inp" name="area_acres" type="number" step="0.1" required
+              value="{{ farm.area_acres|default:'' }}"
+              placeholder="e.g. 5.5">
+          </div>
+        </div>
+
+        <div class="g2" style="margin-bottom:14px;">
+          <div class="fgrp">
+            <label>Soil Type</label>
+            <select class="inp" name="soil_type">
+              <option value="black" {% if farm.soil_type == 'black' %}selected{% endif %}>Black Cotton Soil</option>
+              <option value="red" {% if farm.soil_type == 'red' %}selected{% endif %}>Red Laterite Soil</option>
+              <option value="alluvial" {% if farm.soil_type == 'alluvial' %}selected{% endif %}>Alluvial Soil</option>
+              <option value="sandy" {% if farm.soil_type == 'sandy' %}selected{% endif %}>Sandy Loam</option>
+              <option value="clay" {% if farm.soil_type == 'clay' %}selected{% endif %}>Clay Soil</option>
+            </select>
+          </div>
+          <div class="fgrp">
+            <label>Irrigation Type</label>
+            <input class="inp" name="irrigation"
+              value="{{ farm.irrigation|default:'' }}"
+              placeholder="e.g. Drip, Canal, Borewell">
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button type="submit" class="btn btn-primary">
+            {% if farm %}Update Farm{% else %}Create Farm{% endif %}
+          </button>
+          {% if farm %}
+          <a href="/farm/" class="btn btn-outline">Cancel</a>
+          {% endif %}
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

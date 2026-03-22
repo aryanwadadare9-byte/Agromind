@@ -1,0 +1,31 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AgroMind Register</title><style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:#f4f6f3;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.box{background:#fff;border:1px solid #dde5d8;border-radius:14px;padding:36px 32px;width:400px;box-shadow:0 4px 24px rgba(0,0,0,.08);}
+.logo{font-size:22px;font-weight:800;color:#1a6b3a;text-align:center;margin-bottom:2px;}
+.logo em{color:#2d8a50;font-style:normal;}
+.sub{text-align:center;color:#7a9478;font-size:12.5px;margin-bottom:24px;}
+h2{font-size:18px;font-weight:700;margin-bottom:20px;text-align:center;color:#1c2b1c;}
+label{font-size:12px;font-weight:600;color:#4a6349;display:block;margin-bottom:4px;}
+.inp{background:#f9faf8;border:1.5px solid #dde5d8;border-radius:8px;padding:10px 13px;font-size:13.5px;width:100%;margin-bottom:14px;outline:none;font-family:inherit;transition:border-color .15s;}
+.inp:focus{border-color:#1a6b3a;background:#fff;}
+.btn{width:100%;padding:11px;background:#1a6b3a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;}
+.btn:hover{background:#2d8a50;}
+.link{text-align:center;margin-top:16px;font-size:13px;color:#7a9478;}
+.link a{color:#1a6b3a;font-weight:600;}
+.err{background:#fdedec;border:1px solid #f5c0bb;border-radius:8px;padding:9px 13px;font-size:13px;color:#c0392b;margin-bottom:14px;}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"></head>
+<body><div class="box">
+  <div class="logo">Agro<em>Mind</em></div>
+  <div class="sub">AI Agriculture Platform</div>
+  <h2>Create Account</h2>
+  {% if messages %}{% for msg in messages %}<div class="err">{{ msg }}</div>{% endfor %}{% endif %}
+  <form method="post">{% csrf_token %}
+    <label>Username</label><input class="inp" name="username" required placeholder="Choose username" autofocus>
+    <label>Email</label><input class="inp" name="email" type="email" placeholder="your@email.com">
+    <label>Password</label><input class="inp" type="password" name="password" required placeholder="Create password">
+    <button class="btn" type="submit">Create Account →</button>
+  </form>
+  <div class="link">Have account? <a href="/users/login/">Sign in</a></div>
+</div></body></html>

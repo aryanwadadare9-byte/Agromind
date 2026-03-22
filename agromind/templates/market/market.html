@@ -1,0 +1,156 @@
+{% extends "base/base.html" %}
+{% block title %}Market Prices{% endblock %}
+{% block page_title %}Market Price Analyzer{% endblock %}
+{% block content %}
+<div class="g2">
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-head">
+        <div class="card-title">📈 Price Analysis & Prediction</div>
+        <span style="font-size:11px;color:var(--txt3);">StepFun AI</span>
+      </div>
+      <div class="card-body">
+        <div class="fgrp" style="margin-bottom:12px;">
+          <label>Crop Name *</label>
+          <input class="inp" id="m-crop" placeholder="e.g. Soybean, Wheat, Cotton, Onion">
+        </div>
+        <div class="g2" style="margin-bottom:12px;">
+          <div class="fgrp">
+            <label>Location / Mandi *</label>
+            <input class="inp" id="m-loc" placeholder="e.g. Latur, Nagpur">
+          </div>
+          <div class="fgrp">
+            <label>Season</label>
+            <select class="inp" id="m-season">
+              <option>Kharif 2025</option>
+              <option>Rabi 2025-26</option>
+              <option>Zaid 2025</option>
+              <option>Current Market</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="getMarket()" style="width:100%;justify-content:center;">
+          📊 Analyze Market
+        </button>
+        <div class="loading" id="m-loading" style="margin-top:12px;">
+          <div class="spinner"></div> Analyzing market conditions…
+        </div>
+        <div id="m-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+<div id="o-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+<div id="r-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+<div id="n-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+        <div id="m-error" class="err-box" style="display:none;margin-top:14px;"></div>
+      </div>
+    </div>
+
+    <!-- Quick Crops -->
+    <div class="card">
+      <div class="card-head"><div class="card-title">⚡ Quick Check</div></div>
+      <div class="card-body" style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="qcrop-btn" onclick="quickCrop('Soybean')">Soybean</button>
+        <button class="qcrop-btn" onclick="quickCrop('Wheat')">Wheat</button>
+        <button class="qcrop-btn" onclick="quickCrop('Rice')">Rice</button>
+        <button class="qcrop-btn" onclick="quickCrop('Cotton')">Cotton</button>
+        <button class="qcrop-btn" onclick="quickCrop('Onion')">Onion</button>
+        <button class="qcrop-btn" onclick="quickCrop('Tomato')">Tomato</button>
+        <button class="qcrop-btn" onclick="quickCrop('Sugarcane')">Sugarcane</button>
+        <button class="qcrop-btn" onclick="quickCrop('Tur Dal')">Tur Dal</button>
+        <button class="qcrop-btn" onclick="quickCrop('Maize')">Maize</button>
+        <button class="qcrop-btn" onclick="quickCrop('Groundnut')">Groundnut</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Queries -->
+  <div class="card">
+    <div class="card-head"><div class="card-title">🕐 Recent Queries</div></div>
+    <div style="padding:0;">
+      {% if recent %}
+        {% for q in recent %}
+        <div style="padding:12px 16px;border-bottom:1px solid var(--bdr);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-weight:700;font-size:13px;">{{ q.crop }}</span>
+            <span style="font-size:10px;color:var(--txt3);">{{ q.created_at|date:"d M, H:i" }}</span>
+          </div>
+          <div style="font-size:12px;color:var(--txt2);">{{ q.location }}</div>
+          <div style="font-size:12px;color:var(--txt3);margin-top:4px;">{{ q.result|truncatechars:80 }}</div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="padding:32px;text-align:center;color:var(--txt3);font-size:13px;">
+          No queries yet. Analyze a crop above.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+.qcrop-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--bdr2);
+  background: var(--surf2);
+  color: var(--txt2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s;
+}
+.qcrop-btn:hover {
+  border-color: var(--green);
+  color: var(--green);
+  background: var(--green3);
+}
+</style>
+
+<input type="hidden" id="csrf" value="{{ csrf_token }}">
+<script>
+function quickCrop(crop) {
+  document.getElementById('m-crop').value = crop;
+  document.getElementById('m-loc').focus();
+}
+
+function getMarket() {
+  var crop = document.getElementById('m-crop').value.trim();
+  var loc = document.getElementById('m-loc').value.trim();
+  var season = document.getElementById('m-season').value;
+  if (!crop || !loc) {
+    alert('Please enter crop name and location.');
+    return;
+  }
+  document.getElementById('m-loading').style.display = 'flex';
+  document.getElementById('m-result').style.display = 'none';
+  document.getElementById('m-error').style.display = 'none';
+
+  fetch('/market/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.getElementById('csrf').value
+    },
+    body: JSON.stringify({ crop: crop, location: loc, season: season })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    document.getElementById('m-loading').style.display = 'none';
+    if (d.success) {
+      var el = document.getElementById('m-result');
+      el.innerHTML = formatAI(d.result);
+      el.style.display = 'block';
+    } else {
+      var el = document.getElementById('m-error');
+      el.textContent = 'Error: ' + d.error;
+      el.style.display = 'block';
+    }
+  })
+  .catch(function(e) {
+    document.getElementById('m-loading').style.display = 'none';
+    var el = document.getElementById('m-error');
+    el.textContent = 'Network error: ' + e.message;
+    el.style.display = 'block';
+  });
+}
+</script>
+{% endblock %}

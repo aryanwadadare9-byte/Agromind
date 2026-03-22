@@ -1,0 +1,158 @@
+{% extends "base/base.html" %}
+{% block title %}Organic Guide{% endblock %}
+{% block page_title %}Organic Farming Guide{% endblock %}
+{% block content %}
+<div class="g2">
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-head">
+        <div class="card-title">🌿 Get Organic Solution</div>
+        <span style="font-size:11px;color:var(--txt3);">StepFun AI</span>
+      </div>
+      <div class="card-body">
+        <div class="fgrp" style="margin-bottom:12px;">
+          <label>Crop Name *</label>
+          <input class="inp" id="o-crop" placeholder="e.g. Tomato, Paddy, Soybean">
+        </div>
+        <div class="fgrp" style="margin-bottom:14px;">
+          <label>Problem / Goal *</label>
+          <textarea class="inp" id="o-problem" rows="3" style="resize:vertical;"
+            placeholder="e.g. Leaves turning yellow, want to switch to organic farming, pest control without chemicals..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="getOrganic()" style="width:100%;justify-content:center;">
+          🌿 Get Organic Guide
+        </button>
+        <div class="loading" id="o-loading" style="margin-top:12px;">
+          <div class="spinner"></div> Generating organic solution…
+        </div>
+        <div id="m-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+<div id="o-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+<div id="r-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+<div id="n-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+        <div id="o-error" class="err-box" style="display:none;margin-top:14px;"></div>
+      </div>
+    </div>
+
+    <!-- Quick Problems -->
+    <div class="card">
+      <div class="card-head"><div class="card-title">⚡ Common Problems</div></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:6px;">
+        <button class="qbtn" onclick="quickProblem('Yellow leaves')">🌱 Yellow leaves</button>
+        <button class="qbtn" onclick="quickProblem('Pest attack')">🌱 Pest attack</button>
+        <button class="qbtn" onclick="quickProblem('Soil improvement')">🌱 Soil improvement</button>
+        <button class="qbtn" onclick="quickProblem('Fungal disease')">🌱 Fungal disease</button>
+        <button class="qbtn" onclick="quickProblem('Water stress')">🌱 Water stress</button>
+        <button class="qbtn" onclick="quickProblem('Low yield')">🌱 Low yield</button>
+        <button class="qbtn" onclick="quickProblem('Weed control')">🌱 Weed control</button>
+        <button class="qbtn" onclick="quickProblem('Root rot')">🌱 Root rot</button>
+        <button class="qbtn" onclick="quickProblem('Aphids and Insects')">🌱 Aphids and Insects</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Panel -->
+  <div class="card">
+    <div class="card-head"><div class="card-title">🌱 Why Organic Farming?</div></div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;line-height:1.7;">
+        <div style="background:var(--green3);border:1px solid var(--bdr2);border-radius:10px;padding:14px;">
+          <div style="font-weight:700;color:var(--green);margin-bottom:8px;">✅ Benefits</div>
+          <div style="color:var(--txt2);">
+            • Lower input costs by 40-60%<br>
+            • Premium selling price (10-30% more)<br>
+            • Healthier soil for future crops<br>
+            • No chemical residues in produce<br>
+            • Sustainable long-term farming
+          </div>
+        </div>
+        <div style="background:var(--acc2);border:1px solid #e8c06a;border-radius:10px;padding:14px;">
+          <div style="font-weight:700;color:#b07010;margin-bottom:8px;">🌾 Common Organic Inputs</div>
+          <div style="color:var(--txt2);">
+            • Vermicompost / FYM<br>
+            • Neem oil / Neem cake<br>
+            • Jeevamrut / Panchagavya<br>
+            • Trichoderma / Pseudomonas<br>
+            • Botanical pesticides
+          </div>
+        </div>
+        <div style="background:var(--blue2);border:1px solid #b5d4f4;border-radius:10px;padding:14px;">
+          <div style="font-weight:700;color:var(--blue);margin-bottom:8px;">📋 Government Support</div>
+          <div style="color:var(--txt2);">
+            • Paramparagat Krishi Vikas Yojana (PKVY)<br>
+            • National Mission on Sustainable Agriculture<br>
+            • Organic certification support<br>
+            • Subsidies on organic inputs
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.qbtn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--bdr);
+  background: var(--surf2);
+  color: var(--txt2);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: all .15s;
+}
+.qbtn:hover {
+  border-color: var(--green);
+  background: var(--green3);
+  color: var(--green);
+}
+</style>
+
+<input type="hidden" id="csrf" value="{{ csrf_token }}">
+<script>
+function quickProblem(p) {
+  document.getElementById('o-problem').value = p;
+}
+
+function getOrganic() {
+  var crop = document.getElementById('o-crop').value.trim();
+  var prob = document.getElementById('o-problem').value.trim();
+  if (!crop || !prob) {
+    alert('Please enter crop name and problem.');
+    return;
+  }
+  document.getElementById('o-loading').style.display = 'flex';
+  document.getElementById('o-result').style.display = 'none';
+  document.getElementById('o-error').style.display = 'none';
+
+  fetch('/organic/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.getElementById('csrf').value
+    },
+    body: JSON.stringify({ crop: crop, problem: prob })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    document.getElementById('o-loading').style.display = 'none';
+    if (d.success) {
+      var el = document.getElementById('o-result');
+      el.innerHTML = formatAI(d.result);
+      el.style.display = 'block';
+    } else {
+      var el = document.getElementById('o-error');
+      el.textContent = 'Error: ' + d.error;
+      el.style.display = 'block';
+    }
+  })
+  .catch(function(e) {
+    document.getElementById('o-loading').style.display = 'none';
+    var el = document.getElementById('o-error');
+    el.textContent = 'Network error: ' + e.message;
+    el.style.display = 'block';
+  });
+}
+</script>
+{% endblock %}

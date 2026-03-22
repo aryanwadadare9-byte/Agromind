@@ -1,0 +1,123 @@
+{% extends "base/base.html" %}
+{% block title %}Rainfall & Weather{% endblock %}
+{% block page_title %}Rainfall Predictor & Weather{% endblock %}
+{% block content %}
+<div class="g2" style="margin-bottom:16px;">
+  <div class="card">
+    <div class="card-head"><div class="card-title">🌧 Rainfall Prediction</div><span style="font-size:11px;color:var(--green);font-weight:600;">Open-Meteo Real-Time API</span></div>
+    <div class="card-body">
+      <div class="fgrp" style="margin-bottom:12px;"><label>Location / District *</label><input class="inp" id="r-loc" placeholder="e.g. Parbhani, Nagpur, Pune" oninput="debounceWeather()"></div>
+      <div class="g2" style="margin-bottom:12px;">
+        <div class="fgrp"><label>Month</label><select class="inp" id="r-month">
+          <option>January</option><option>February</option><option>March</option><option>April</option>
+          <option>May</option><option>June</option><option>July</option><option>August</option>
+          <option>September</option><option>October</option><option>November</option><option>December</option>
+        </select></div>
+        <div class="fgrp"><label>Crop</label><input class="inp" id="r-crop" placeholder="e.g. Soybean"></div>
+      </div>
+      <button class="btn btn-primary" onclick="getRainfall()" style="width:100%;justify-content:center;">🌧 Get Rainfall Advisory</button>
+      <div class="loading" id="r-loading" style="margin-top:12px;"><div class="spinner"></div> Fetching real-time weather + AI analysis…</div>
+      <div id="m-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+<div id="o-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+<div id="r-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+<div id="n-result" class="ai-response" style="display:none;margin-top:14px;"></div>
+      <div id="r-error" class="err-box" style="display:none;margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <!-- Live Weather Box -->
+  <div class="card">
+    <div class="card-head"><div class="card-title">⚡ Live Weather</div><span style="font-size:11px;color:var(--txt3);">Updates as you type</span></div>
+    <div class="card-body" id="weather-box">
+      <div style="color:var(--txt3);font-size:13px;text-align:center;padding:30px 0;">Enter a location to see live weather</div>
+    </div>
+  </div>
+</div>
+
+<input type="hidden" id="csrf" value="{{ csrf_token }}">
+<script>
+var weatherTimer = null;
+function debounceWeather() {
+  clearTimeout(weatherTimer);
+  weatherTimer = setTimeout(function() {
+    var loc = document.getElementById('r-loc').value.trim();
+    if (loc.length > 2) fetchWeather(loc);
+  }, 800);
+}
+
+function fetchWeather(loc) {
+  document.getElementById('weather-box').innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--txt2);font-size:13px;"><div class="spinner"></div> Fetching live weather…</div>';
+  fetch('/rainfall/api/?location=' + encodeURIComponent(loc))
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.success) {
+      var w = d.weather;
+      var forecastHtml = '';
+      if (w.forecast && w.forecast.length) {
+        forecastHtml = '<div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin:14px 0 8px;">7-Day Forecast</div><div style="display:flex;gap:6px;overflow-x:auto;">';
+        w.forecast.forEach(function(day){
+          forecastHtml += '<div style="flex-shrink:0;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:8px;text-align:center;min-width:72px;">' +
+            '<div style="font-size:10px;color:var(--txt3);">' + (day.date||'').slice(5) + '</div>' +
+            '<div style="font-size:14px;font-weight:700;color:var(--txt);margin:3px 0;">' + Math.round(day.max||0) + '°</div>' +
+            '<div style="font-size:10px;color:var(--txt3);">' + Math.round(day.min||0) + '°</div>' +
+            '<div style="font-size:10px;color:var(--blue);margin-top:2px;">' + (day.rain||0).toFixed(1) + 'mm</div>' +
+            '</div>';
+        });
+        forecastHtml += '</div>';
+      }
+      document.getElementById('weather-box').innerHTML =
+        '<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">' +
+          '<div style="font-size:52px;font-weight:800;color:var(--green);line-height:1;">' + w.temp + '°</div>' +
+          '<div><div style="font-size:15px;font-weight:700;">' + w.description + '</div>' +
+          '<div style="font-size:12px;color:var(--txt3);margin-top:2px;">' + w.city + ', ' + w.country + '</div></div>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">' +
+          wstat('Humidity', w.humidity+'%', 'var(--blue)') +
+          wstat('Wind', w.wind+' km/h', 'var(--txt2)') +
+          wstat('Rain now', (w.rain||0)+'mm', 'var(--blue)') +
+          wstat('Feels', w.feels_like+'°', 'var(--green)') +
+        '</div>' + forecastHtml;
+    } else {
+      document.getElementById('weather-box').innerHTML = '<div class="err-box">Location not found: ' + (d.error||'') + '</div>';
+    }
+  })
+  .catch(function(){ document.getElementById('weather-box').innerHTML = '<div class="err-box">Could not fetch weather data.</div>'; });
+}
+
+function wstat(label, val, color) {
+  return '<div style="background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:8px;text-align:center;">' +
+    '<div style="font-size:10px;color:var(--txt3);">' + label + '</div>' +
+    '<div style="font-size:15px;font-weight:700;color:' + color + ';margin-top:2px;">' + val + '</div>' +
+    '</div>';
+}
+
+function getRainfall() {
+  var loc = document.getElementById('r-loc').value.trim();
+  var month = document.getElementById('r-month').value;
+  var crop = document.getElementById('r-crop').value.trim();
+  if (!loc) { alert('Please enter a location.'); return; }
+  document.getElementById('r-loading').style.display = 'flex';
+  document.getElementById('r-result').style.display = 'none';
+  document.getElementById('r-error').style.display = 'none';
+  fetch('/rainfall/', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','X-CSRFToken':document.getElementById('csrf').value},
+    body: JSON.stringify({location:loc, month:month, crop:crop})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    document.getElementById('r-loading').style.display = 'none';
+    if (d.success) { var el=document.getElementById('r-result'); el.innerHTML = formatAI(d.result); el.style.display='block'; }
+    else { var el=document.getElementById('r-error'); el.textContent='Error: '+d.error; el.style.display='block'; }
+  })
+  .catch(function(e){
+    document.getElementById('r-loading').style.display = 'none';
+    var el=document.getElementById('r-error'); el.textContent='Network error: '+e.message; el.style.display='block';
+  });
+}
+
+// Set current month
+var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+document.getElementById('r-month').value = months[new Date().getMonth()];
+</script>
+{% endblock %}

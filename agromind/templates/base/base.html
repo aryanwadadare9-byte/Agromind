@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroMind — {% block title %}{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green:#1a6b3a; --green2:#2d8a50; --green3:#e8f5ed;
+  --bg:#f4f6f3; --surf:#ffffff; --surf2:#f9faf8;
+  --bdr:#dde5d8; --bdr2:#c8d8c0;
+  --txt:#1c2b1c; --txt2:#4a6349; --txt3:#7a9478;
+  --acc:#e8a020; --acc2:#fff3d6;
+  --red:#c0392b; --red2:#fdedec;
+  --blue:#1a6b9a; --blue2:#e8f4fb;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.04);
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:"Plus Jakarta Sans",sans-serif; background:var(--bg); color:var(--txt); display:flex; min-height:100vh; font-size:14px; }
+a { text-decoration:none; color:inherit; }
+
+/* SIDEBAR */
+.sidebar { width:220px; background:var(--green); min-height:100vh; display:flex; flex-direction:column; flex-shrink:0; position:sticky; top:0; height:100vh; overflow-y:auto; }
+.logo-wrap { padding:20px 18px 16px; border-bottom:1px solid rgba(255,255,255,.12); }
+.logo { font-size:20px; font-weight:800; color:#fff; letter-spacing:-.5px; }
+.logo em { color:#a8ddb8; font-style:normal; }
+.logo-sub { font-size:9px; color:rgba(255,255,255,.45); letter-spacing:2.5px; margin-top:2px; text-transform:uppercase; }
+.nav { padding:12px 10px; flex:1; display:flex; flex-direction:column; gap:1px; }
+.nav-sec { font-size:9px; color:rgba(255,255,255,.38); letter-spacing:2px; padding:10px 10px 4px; text-transform:uppercase; }
+.nav-link { display:flex; align-items:center; gap:9px; padding:9px 11px; border-radius:8px; color:rgba(255,255,255,.78); font-size:13px; font-weight:500; transition:all .15s; }
+.nav-link:hover { background:rgba(255,255,255,.12); color:#fff; }
+.nav-link.on { background:rgba(255,255,255,.18); color:#fff; font-weight:600; }
+.nav-link .ic { font-size:15px; width:18px; text-align:center; flex-shrink:0; }
+.nav-foot { padding:14px 18px; border-top:1px solid rgba(255,255,255,.12); }
+.nav-foot .uname { font-weight:600; color:#fff; font-size:13px; }
+.nav-foot a { color:rgba(255,255,255,.5); font-size:11.5px; }
+
+/* MAIN */
+.main { flex:1; display:flex; flex-direction:column; min-width:0; }
+.topbar { background:var(--surf); border-bottom:1px solid var(--bdr); padding:0 24px; height:52px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:100; box-shadow:var(--shadow); }
+.topbar-title { font-size:16px; font-weight:700; flex:1; }
+.ai-pill { display:flex; align-items:center; gap:5px; font-size:11px; background:var(--green3); color:var(--green); border:1px solid var(--bdr2); padding:4px 10px; border-radius:20px; font-weight:600; }
+.ai-dot { width:6px; height:6px; border-radius:50%; background:var(--green2); animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+.page { flex:1; padding:22px 24px; overflow-y:auto; }
+
+/* COMPONENTS */
+.btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; border:1.5px solid transparent; font-family:inherit; transition:all .15s; }
+.btn-primary { background:var(--green); color:#fff; border-color:var(--green); }
+.btn-primary:hover { background:var(--green2); }
+.btn-outline { background:transparent; border-color:var(--bdr2); color:var(--txt2); }
+.btn-outline:hover { border-color:var(--green); color:var(--green); }
+.btn-sm { padding:5px 12px; font-size:12px; }
+.btn-danger { background:var(--red2); color:var(--red); border-color:#f5c0bb; }
+
+.card { background:var(--surf); border:1px solid var(--bdr); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); }
+.card-head { padding:14px 18px; border-bottom:1px solid var(--bdr); display:flex; align-items:center; gap:10px; }
+.card-title { font-size:14px; font-weight:700; flex:1; }
+.card-body { padding:18px; }
+
+.inp { background:var(--surf2); border:1.5px solid var(--bdr); border-radius:8px; padding:9px 13px; color:var(--txt); font-size:13px; font-family:inherit; outline:none; transition:border-color .15s; width:100%; }
+.inp:focus { border-color:var(--green); background:var(--surf); }
+.inp::placeholder { color:var(--txt3); }
+select.inp option { background:var(--surf); }
+
+.badge { font-size:10px; padding:3px 8px; border-radius:6px; font-weight:600; display:inline-block; }
+.b-green { background:var(--green3); color:var(--green); }
+.b-yellow { background:var(--acc2); color:#b07010; }
+.b-red { background:var(--red2); color:var(--red); }
+.b-blue { background:var(--blue2); color:var(--blue); }
+.b-gray { background:#f0f0f0; color:#555; }
+
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.g3 { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+
+.stat { background:var(--surf); border:1px solid var(--bdr); border-radius:12px; padding:16px 18px; position:relative; box-shadow:var(--shadow); }
+.stat-lbl { font-size:10px; color:var(--txt3); text-transform:uppercase; letter-spacing:1px; font-weight:600; }
+.stat-val { font-size:28px; font-weight:800; color:var(--green); margin:4px 0 2px; line-height:1; }
+.stat-sub { font-size:11px; color:var(--txt3); }
+.stat-ico { position:absolute; right:14px; top:14px; font-size:24px; opacity:.15; }
+
+.result-box {
+  background: #ffffff;
+  border: 1px solid var(--bdr);
+  border-radius: 12px;
+  padding: 20px 24px;
+  font-size: 14px;
+  line-height: 1.9;
+  white-space: pre-wrap;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  color: var(--txt);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.result-box strong,
+.result-box b {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.ai-response {
+  background: #ffffff;
+  border: 1px solid var(--bdr);
+  border-radius: 12px;
+  padding: 22px 26px;
+  font-size: 14px;
+  line-height: 1.9;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  color: var(--txt);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.ai-response h3,
+.ai-response .section-title {
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 700;
+  margin: 14px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--bdr);
+}
+.loading { display:none; align-items:center; gap:8px; color:var(--txt2); font-size:13px; padding:12px 0; }
+.spinner { width:16px; height:16px; border:2px solid var(--bdr2); border-top-color:var(--green); border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.err-box { background:var(--red2); border:1px solid #f5c0bb; border-radius:8px; padding:10px 14px; font-size:13px; color:var(--red); }
+label { font-size:12px; font-weight:600; color:var(--txt2); display:block; margin-bottom:4px; }
+.fgrp { display:flex; flex-direction:column; gap:3px; }
+.alert-msg { padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:16px; }
+.alert-err { background:var(--red2); border:1px solid #f5c0bb; color:var(--red); }
+.alert-ok { background:var(--green3); border:1px solid var(--bdr2); color:var(--green); }
+</style>
+</head>
+
+<body>
+<aside class="sidebar">
+  <div class="logo-wrap">
+    <div class="logo">Agro<em>Mind</em></div>
+    <div class="logo-sub">AI Agriculture Platform</div>
+  </div>
+  <nav class="nav">
+    <span class="nav-sec">Overview</span>
+    <a href="/farm/" class="nav-link {% if '/farm/' in request.path %}on{% endif %}"><span class="ic">🌾</span> Farm Manager</a>
+    <span class="nav-sec">AI Modules</span>
+    <a href="/disease/" class="nav-link {% if '/disease/' in request.path %}on{% endif %}"><span class="ic">🔬</span> Disease Detector</a>
+    <a href="/market/" class="nav-link {% if '/market/' in request.path %}on{% endif %}"><span class="ic">📈</span> Market Prices</a>
+    <a href="/organic/" class="nav-link {% if '/organic/' in request.path %}on{% endif %}"><span class="ic">🌿</span> Organic Guide</a>
+    <a href="/rainfall/" class="nav-link {% if '/rainfall/' in request.path %}on{% endif %}"><span class="ic">🌧</span> Rainfall & Weather</a>
+    <a href="/news/" class="nav-link {% if '/news/' in request.path %}on{% endif %}"><span class="ic">📰</span> Agri News</a>
+  </nav>
+  <div class="nav-foot">
+    <div class="uname">{{ request.user.username }}</div>
+    <a href="/users/logout/">Sign out</a>
+  </div>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">{% block page_title %}AgroMind{% endblock %}</div>
+    <div class="ai-pill"><div class="ai-dot"></div>StepFun + Gemini AI</div>
+    {% block topbar_extra %}{% endblock %}
+  </div>
+  <div class="page">
+    {% if messages %}{% for msg in messages %}<div class="alert-msg {% if msg.tags == 'error' %}alert-err{% else %}alert-ok{% endif %}">{{ msg }}</div>{% endfor %}{% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+<script>
+function formatAI(text) {
+  if (!text) return '';
+
+  // Escape HTML first
+  var escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  var lines = escaped.split('\n');
+  var html = '';
+  var inList = false;
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    var trimmed = line.trim();
+
+    if (trimmed === '') {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += '<div style="height:8px;"></div>';
+      continue;
+    }
+
+    // ALL CAPS heading (like WEATHER SUMMARY: or RISK ASSESSMENT:)
+    if (/^[A-Z][A-Z\s\(\)\/\-]+:$/.test(trimmed) || /^[A-Z][A-Z\s]+:$/.test(trimmed)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += '<div style="font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin:16px 0 6px;padding:6px 0;border-bottom:1px solid var(--bdr);">' + trimmed + '</div>';
+      continue;
+    }
+
+    // Line with colon that acts as label (like "Expected Rainfall: 120mm")
+    if (/^[A-Za-z][^:]{2,40}:\s*.+/.test(trimmed) && !trimmed.startsWith('http')) {
+      if (inList) { html += '</ul>'; inList = false; }
+      var colonIdx = trimmed.indexOf(':');
+      var label = trimmed.substring(0, colonIdx);
+      var value = trimmed.substring(colonIdx + 1).trim();
+      html += '<div style="display:flex;gap:8px;margin:4px 0;font-size:14px;">' +
+        '<span style="font-weight:600;color:var(--txt);min-width:160px;flex-shrink:0;">' + label + ':</span>' +
+        '<span style="color:var(--txt2);">' + value + '</span>' +
+        '</div>';
+      continue;
+    }
+
+    // Bullet points (•, -, *, numbered)
+    if (/^[\•\-\*]\s/.test(trimmed) || /^\d+[\.\)]\s/.test(trimmed)) {
+      if (!inList) { html += '<ul style="margin:6px 0 6px 18px;padding:0;list-style:none;">'; inList = true; }
+      var bulletText = trimmed.replace(/^[\•\-\*\d\.\)]\s*/, '');
+      // Check if bullet has a bold label (e.g. "• Product: Neem Oil")
+      if (bulletText.indexOf(':') > 0 && bulletText.indexOf(':') < 40) {
+        var bci = bulletText.indexOf(':');
+        var blabel = bulletText.substring(0, bci);
+        var bval = bulletText.substring(bci + 1).trim();
+        html += '<li style="padding:3px 0;font-size:14px;color:var(--txt2);display:flex;gap:6px;align-items:baseline;">' +
+          '<span style="color:var(--green);font-size:10px;margin-top:2px;">▶</span>' +
+          '<span><strong style="color:var(--txt);font-weight:600;">' + blabel + ':</strong> ' + bval + '</span></li>';
+      } else {
+        html += '<li style="padding:3px 0;font-size:14px;color:var(--txt2);display:flex;gap:6px;align-items:baseline;">' +
+          '<span style="color:var(--green);font-size:10px;margin-top:2px;">▶</span>' +
+          '<span>' + bulletText + '</span></li>';
+      }
+      continue;
+    }
+
+    // Normal paragraph text
+    if (inList) { html += '</ul>'; inList = false; }
+    html += '<p style="margin:4px 0;font-size:14px;color:var(--txt2);line-height:1.8;">' + trimmed + '</p>';
+  }
+
+  if (inList) html += '</ul>';
+  return html;
+}
+</script>
+</body>
+</html>

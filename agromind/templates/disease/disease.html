@@ -1,0 +1,123 @@
+{% extends "base/base.html" %}
+{% block title %}Disease Detector{% endblock %}
+{% block page_title %}Crop Disease Detector{% endblock %}
+{% block content %}
+<div class="g2" style="margin-bottom:18px;">
+  <!-- Upload Panel -->
+  <div class="card">
+    <div class="card-head"><div class="card-title">🔬 Upload Crop Image</div><span style="font-size:11px;color:var(--txt3);font-weight:500;">Powered by Gemini Vision AI</span></div>
+    <div class="card-body">
+      <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.6;">Upload a clear photo of the affected leaf, stem, or plant part. Gemini Flash AI will analyze and diagnose any disease or pest.</p>
+      <div class="fgrp" style="margin-bottom:14px;"><label>Crop Name (optional)</label><input class="inp" id="crop-name" placeholder="e.g. Soybean, Cotton, Wheat"></div>
+      <div class="fgrp" style="margin-bottom:14px;">
+        <label>Select Image *</label>
+        <input class="inp" type="file" id="img-input" accept="image/*" onchange="previewImage(this)">
+      </div>
+      <div id="preview-wrap" style="display:none;margin-bottom:14px;">
+        <img id="preview-img" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid var(--bdr);object-fit:contain;">
+      </div>
+      <button class="btn btn-primary" onclick="analyzeDisease()" style="width:100%;justify-content:center;">🔬 Analyze with Gemini AI</button>
+      <div class="loading" id="dis-loading" style="margin-top:12px;"><div class="spinner"></div> Gemini Vision is analyzing your image…</div>
+    </div>
+  </div>
+
+  <!-- Result Panel -->
+  <div>
+    <div class="card" style="margin-bottom:14px;" id="result-card" style="display:none;">
+      <div class="card-head"><div class="card-title">📊 Analysis Result</div></div>
+      <div class="card-body" id="result-body" style="display:none;">
+        <div id="dis-summary" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;"></div>
+        <div id="dis-detail" class="result-box" style="font-size:12px;line-height:1.7;"></div>
+      </div>
+      <div class="card-body" id="error-body" style="display:none;">
+        <div id="dis-error" class="err-box"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">🕐 Recent Detections</div></div>
+      <div style="padding:0;">
+        {% if history %}
+        {% for d in history %}
+        <div style="padding:11px 16px;border-bottom:1px solid var(--bdr);display:flex;gap:12px;align-items:flex-start;">
+          {% if d.image %}<img src="{{ d.image.url }}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;border:1px solid var(--bdr);flex-shrink:0;">{% endif %}
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:600;font-size:13px;">{{ d.crop_name|default:"Unknown crop" }}</div>
+            <div style="font-size:12px;color:var(--txt2);">{{ d.disease_name|default:"Analyzed"|truncatechars:40 }}</div>
+            <div style="display:flex;gap:6px;margin-top:4px;">
+              {% if d.severity %}<span class="badge {% if d.severity == 'Healthy' %}b-green{% elif d.severity == 'Severe' %}b-red{% elif d.severity == 'Moderate' %}b-yellow{% else %}b-gray{% endif %}">{{ d.severity }}</span>{% endif %}
+              {% if d.confidence %}<span class="badge b-blue">{{ d.confidence }}</span>{% endif %}
+            </div>
+          </div>
+          <div style="font-size:10px;color:var(--txt3);flex-shrink:0;">{{ d.created_at|date:"d M, H:i" }}</div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div style="padding:24px;text-align:center;color:var(--txt3);font-size:13px;">No detections yet. Upload a crop image above.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<input type="hidden" id="csrf" value="{{ csrf_token }}">
+<script>
+function previewImage(input) {
+  if (input.files && input.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('preview-img').src = e.target.result;
+      document.getElementById('preview-wrap').style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function analyzeDisease() {
+  var fileInput = document.getElementById('img-input');
+  if (!fileInput.files || !fileInput.files[0]) {
+    alert('Please select an image first.');
+    return;
+  }
+  var cropName = document.getElementById('crop-name').value;
+  var formData = new FormData();
+  formData.append('image', fileInput.files[0]);
+  formData.append('crop_name', cropName);
+  formData.append('csrfmiddlewaretoken', document.getElementById('csrf').value);
+
+  document.getElementById('dis-loading').style.display = 'flex';
+  document.getElementById('result-body').style.display = 'none';
+  document.getElementById('error-body').style.display = 'none';
+  document.getElementById('result-card').style.display = 'block';
+
+  fetch('/disease/', { method: 'POST', body: formData })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    document.getElementById('dis-loading').style.display = 'none';
+    if (d.success) {
+      var sev = d.severity || '';
+      var sevColor = sev === 'Healthy' ? '#2d8a50' : sev === 'Severe' ? '#c0392b' : sev === 'Moderate' ? '#e8a020' : '#4a6349';
+      document.getElementById('dis-summary').innerHTML =
+        '<div style="background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:12px;text-align:center;">' +
+          '<div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;">Disease</div>' +
+          '<div style="font-size:14px;font-weight:700;color:var(--txt);margin-top:4px;">' + (d.disease||'See below') + '</div>' +
+        '</div>' +
+        '<div style="background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:12px;text-align:center;">' +
+          '<div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;">Severity</div>' +
+          '<div style="font-size:14px;font-weight:700;color:' + sevColor + ';margin-top:4px;">' + (sev||'—') + '</div>' +
+        '</div>';
+      document.getElementById('dis-detail').textContent = d.result;
+      document.getElementById('result-body').style.display = 'block';
+    } else {
+      document.getElementById('dis-error').textContent = 'Error: ' + d.error;
+      document.getElementById('error-body').style.display = 'block';
+    }
+  })
+  .catch(function(e) {
+    document.getElementById('dis-loading').style.display = 'none';
+    document.getElementById('dis-error').textContent = 'Network error: ' + e.message;
+    document.getElementById('error-body').style.display = 'block';
+  });
+}
+</script>
+{% endblock %}
